@@ -1,7 +1,13 @@
 import { FormEvent, useState } from "react";
+import { getAuth } from "firebase/auth";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
+import { useForm, SubmitHandler } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
 import { cn } from "@/lib/utils";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,32 +19,70 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link } from "react-router-dom";
+import { AuthError } from "@firebase/auth";
+import { getFirebaseErrorMessage } from "@/types/authErrors";
+
+const schema = z.object({
+  email: z
+    .string()
+    .min(1, "Email is required")
+    .email("Please enter a valid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  // .regex(
+  //   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+  //   "Password must contain at least one uppercase letter, one lowercase letter, and one number"
+  // ),
+});
 
 export function Login({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-
   const { user, login } = useAuth();
   const navigate = useNavigate();
-  const handleSingIn = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({ resolver: zodResolver(schema) });
+
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<AuthError | null>(null);
+
+  async function onSubmit(values: z.infer<typeof schema>) {
     try {
-      await login(email, password);
-      // Redirect or update UI after successful login
+      setLoading(true);
+      setError(null);
+      await login(values.email, values.password);
       console.log("Logged in successfully:", user);
       navigate("/", { replace: true });
-    } catch (err) {
-      console.error("Login failed:", err);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error as AuthError);
+      } else {
+        setError({
+          code: "unknown",
+          message: "An unknown error occurred",
+        } as AuthError);
+      }
+      throw error;
+    } finally {
+      setLoading(false);
     }
-  };
+  }
+  if (user) {
+    return <Navigate to="/" replace={true} />;
+  }
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-sm">
         <div className={cn("flex flex-col gap-6", className)} {...props}>
           <Card>
+            {error && (
+              <p className="text-center text-red-500 font-light">
+                {getFirebaseErrorMessage(error)}
+              </p>
+            )}
             <CardHeader>
               <CardTitle className="text-2xl">Login</CardTitle>
               <CardDescription>
@@ -46,31 +90,39 @@ export function Login({
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSingIn}>
+              <form onSubmit={handleSubmit(onSubmit)}>
                 <div className="flex flex-col gap-6">
                   <div className="grid gap-2">
                     <Label htmlFor="email">Email</Label>
                     <Input
-                      value={email}
-                      onChange={({ target }) => setEmail(target.value)}
+                      {...register("email")}
                       id="email"
                       type="email"
                       placeholder="m@example.com"
                       required
                     />
+                    {errors.email?.message && (
+                      <p className="text-red-500 text-sm font-light">
+                        {errors.email?.message}
+                      </p>
+                    )}
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="password">Password</Label>
                     <Input
-                      value={password}
-                      onChange={({ target }) => setPassword(target.value)}
+                      {...register("password")}
                       id="password"
                       type="password"
                       required
                     />
+                    {errors.password?.message && (
+                      <p className="text-red-500 text-sm font-light">
+                        {errors.password?.message}
+                      </p>
+                    )}
                   </div>
                   <Button type="submit" className="w-full">
-                    Login
+                    <span>{loading ? "Logging..." : "Login"}</span>
                   </Button>
                   <Button variant="outline" className="w-full">
                     Login with Google

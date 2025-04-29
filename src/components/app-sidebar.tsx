@@ -1,12 +1,7 @@
 "use client";
 
 import type * as React from "react";
-import {
-  BookOpen,
-  Bot,
-  Settings2,
-  Home
-} from "lucide-react";
+import { BookOpen, Bot, Settings2, Home } from "lucide-react";
 
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
@@ -24,6 +19,9 @@ import {
 import { Link } from "react-router-dom";
 import Logo from "@/assets/Logo.svg";
 import LogoSm from "@/assets/logo-small.svg";
+import LogoDark from "@/assets/LogoDark.svg";
+import LogoSmDark from "@/assets/logo-small-dark.svg";
+import { useTheme } from "./theme-provider";
 
 // This is sample data.
 const data = {
@@ -58,11 +56,13 @@ const data = {
       url: "/bills",
       icon: Settings2,
     },
-  ]
+  ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { isMobile, open } = useSidebar();
+  const { theme } = useTheme();
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -73,7 +73,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
               <Link to="/">
-                <img src={!open || isMobile ? LogoSm : Logo} alt="logo" />
+                {theme === "light" ? (
+                  <img
+                    src={!open || isMobile ? LogoSmDark : LogoDark}
+                    alt="logo"
+                  />
+                ) : (
+                  <img src={!open || isMobile ? LogoSm : Logo} alt="logo" />
+                )}
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -83,7 +90,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

@@ -3,11 +3,12 @@ import { Navigate, Outlet } from "react-router-dom";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Header } from "./components/header";
+import { Loader } from "./components/shared/loader";
 
 const Layout = () => {
   const { user, loading } = useAuth();
-  if (loading) return <div>Loading...</div>;
-  
+  if (loading) return <Loader />;
+
   return user ? (
     <>
       <SidebarProvider>

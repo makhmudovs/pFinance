@@ -5,7 +5,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Header } from "./components/header";
 import { Loader } from "./components/shared/loader";
 
-const Layout = () => {
+export function Layout(){
   const { user, loading } = useAuth();
   if (loading) return <Loader />;
 
@@ -28,5 +28,3 @@ const Layout = () => {
     <Navigate to="/login" replace />
   );
 };
-
-export default Layout;

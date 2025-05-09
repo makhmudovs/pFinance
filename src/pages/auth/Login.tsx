@@ -1,13 +1,13 @@
-import { FormEvent, useState } from "react";
-import { getAuth } from "firebase/auth";
+import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate, useNavigate } from "react-router-dom";
-import { useForm, SubmitHandler } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import {loginSchema} from '@/schemas/index'
+
 
 import { cn } from "@/lib/utils";
-
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -22,18 +22,6 @@ import { Link } from "react-router-dom";
 import { AuthError } from "@firebase/auth";
 import { getFirebaseErrorMessage } from "@/types/authErrors";
 
-const schema = z.object({
-  email: z
-    .string()
-    .min(1, "Email is required")
-    .email("Please enter a valid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  // .regex(
-  //   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-  //   "Password must contain at least one uppercase letter, one lowercase letter, and one number"
-  // ),
-});
-
 export function Login({
   className,
   ...props
@@ -44,12 +32,12 @@ export function Login({
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({ resolver: zodResolver(schema) });
+  } = useForm({ resolver: zodResolver(loginSchema) });
 
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<AuthError | null>(null);
 
-  async function onSubmit(values: z.infer<typeof schema>) {
+  async function onSubmit(values: z.infer<typeof loginSchema>) {
     try {
       setLoading(true);
       setError(null);

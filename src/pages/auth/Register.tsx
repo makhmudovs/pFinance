@@ -1,6 +1,12 @@
-import { FormEvent, useState } from "react";
-import { auth } from "@/config/firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { useState } from "react";
+import { AuthError } from "firebase/auth";
+import { z } from "zod";
+import { useAuth } from "@/hooks/useAuth";
+import { getFirebaseErrorMessage } from "@/types/authErrors";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { registerSchema } from "@/schemas/index";
+
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,30 +18,59 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Link } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 
 export function Register({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({ resolver: zodResolver(registerSchema) });
 
-  const handleSingUp = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const { user, signup } = useAuth();
+  const navigate = useNavigate();
+
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<AuthError | null>(null);
+
+  async function onSubmit(values: z.infer<typeof registerSchema>) {
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      alert("User created successfully");
-    } catch (error) {
-      console.log(error);
+      setLoading(true);
+      setError(null);
+      await signup(values.email, values.password);
+      console.log("Registered successfully:", user);
+      navigate("/", { replace: true });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error as AuthError);
+      } else {
+        setError({
+          code: "unknown",
+          message: "An unknown error occurred",
+        } as AuthError);
+      }
+      throw error;
+    } finally {
+      setLoading(false);
     }
-  };
+  }
+
+  if (user) {
+    return <Navigate to="/" replace={true} />;
+  }
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-sm">
         <div className={cn("flex flex-col gap-6", className)} {...props}>
           <Card>
+            {error && (
+              <p className="text-center text-red-500 font-light">
+                {getFirebaseErrorMessage(error)}
+              </p>
+            )}
             <CardHeader>
               <CardTitle className="text-2xl">Register</CardTitle>
               <CardDescription>
@@ -43,51 +78,53 @@ export function Register({
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSingUp}>
+              <form onSubmit={handleSubmit(onSubmit)}>
                 <div className="flex flex-col gap-6">
                   <div className="grid gap-2">
                     <Label htmlFor="email">Email</Label>
                     <Input
-                      value={email}
-                      onChange={({ target }) => setEmail(target.value)}
+                      {...register("email")}
                       id="email"
                       type="email"
                       placeholder="m@example.com"
                       required
                     />
+                    {errors.email?.message && (
+                      <p className="text-red-500 text-sm font-light">
+                        {errors.email?.message}
+                      </p>
+                    )}
                   </div>
                   <div className="grid gap-2">
-                    <div className="flex items-center">
-                      <Label htmlFor="password">Password</Label>
-                      <a
-                        href="#"
-                        className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                      >
-                        Forgot your password?
-                      </a>
-                    </div>
+                    <Label htmlFor="password">Password</Label>
                     <Input
-                      value={password}
-                      onChange={({ target }) => setPassword(target.value)}
+                      {...register("password")}
                       id="password"
                       type="password"
                       required
                     />
+                    {errors.password?.message && (
+                      <p className="text-red-500 text-sm font-light">
+                        {errors.password?.message}
+                      </p>
+                    )}
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="passwordR">Repeat Password</Label>
                     <Input
-                      value={confirmPassword}
-                      onChange={({ target }) =>
-                        setConfirmPassword(target.value)
-                      }
+                      {...register("confirmPassword")}
                       id="passwordR"
                       type="password"
                       required
                     />
+                    {errors.confirmPassword?.message && (
+                      <p className="text-red-500 text-sm font-light">
+                        {errors.confirmPassword?.message}
+                      </p>
+                    )}
                   </div>
                   <Button type="submit" className="w-full">
-                    Login
+                    <span>{loading ? "Signing up..." : "Sign Up"}</span>
                   </Button>
                   <Button variant="outline" className="w-full">
                     Login with Google

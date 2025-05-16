@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AuthError } from "firebase/auth";
+import { AuthError, createUserWithEmailAndPassword } from "firebase/auth";
 import { z } from "zod";
 import { useAuth } from "@/hooks/useAuth";
 import { getFirebaseErrorMessage } from "@/types/authErrors";
@@ -19,6 +19,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Eye } from "lucide-react";
+import { auth, db } from "@/config/firebase";
+import { addDoc, collection, Timestamp } from "firebase/firestore";
 
 export function Register({
   className,
@@ -30,18 +33,30 @@ export function Register({
     formState: { errors },
   } = useForm({ resolver: zodResolver(registerSchema) });
 
-  const { user, signup } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<AuthError | null>(null);
-
+  const [showPassword, setShowpassword] = useState<boolean>(false);
   async function onSubmit(values: z.infer<typeof registerSchema>) {
     try {
       setLoading(true);
       setError(null);
-      await signup(values.email, values.password);
-      console.log("Registered successfully:", user);
+      const res = await createUserWithEmailAndPassword(
+        auth,
+        values.email,
+        values.password
+      );
+      const { user } = res;
+      await addDoc(collection(db, "users"), {
+        userId: user.uid,
+        email: user.email,
+        firstName: values.firstName,
+        lastName: values.lastName,
+        createdAt: Timestamp.fromDate(new Date()),
+      });
+      //get user password here and save to the db
       navigate("/", { replace: true });
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -81,6 +96,36 @@ export function Register({
               <form onSubmit={handleSubmit(onSubmit)}>
                 <div className="flex flex-col gap-6">
                   <div className="grid gap-2">
+                    <Label htmlFor="firstName">Fistname</Label>
+                    <Input
+                      {...register("firstName")}
+                      id="firstName"
+                      type="text"
+                      placeholder="Jon"
+                      required
+                    />
+                    {errors.firstName?.message && (
+                      <p className="text-red-500 text-sm font-light">
+                        {errors.firstName?.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="lastName">Lastname</Label>
+                    <Input
+                      {...register("lastName")}
+                      id="lastName"
+                      type="text"
+                      placeholder="Doe"
+                      required
+                    />
+                    {errors.lastName?.message && (
+                      <p className="text-red-500 text-sm font-light">
+                        {errors.lastName?.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="grid gap-2">
                     <Label htmlFor="email">Email</Label>
                     <Input
                       {...register("email")}
@@ -96,11 +141,19 @@ export function Register({
                     )}
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="password">Password</Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="password">Password</Label>
+                      <button
+                        type="button"
+                        onClick={() => setShowpassword(!showPassword)}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                    </div>
                     <Input
                       {...register("password")}
                       id="password"
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       required
                     />
                     {errors.password?.message && (
@@ -114,7 +167,7 @@ export function Register({
                     <Input
                       {...register("confirmPassword")}
                       id="passwordR"
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       required
                     />
                     {errors.confirmPassword?.message && (

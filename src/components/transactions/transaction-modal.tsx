@@ -1,4 +1,3 @@
-import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Controller, useForm } from "react-hook-form";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -39,6 +38,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { CalendarIcon } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { Loader } from "../shared/loader";
+import { useEffect, useRef, useState } from "react";
 
 export function TransactionModal() {
   const {
@@ -119,7 +120,7 @@ export function TransactionModal() {
     };
   }, []);
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <Loader />;
   if (error) return <div>Error loading transaction: {error.message}</div>;
   if (!data) return <div>Transaction not found</div>;
 
@@ -144,7 +145,7 @@ export function TransactionModal() {
                   checked={edit}
                   onCheckedChange={() => setEdit(!edit)}
                 />
-                <Label htmlFor="edit">{edit ? "Editing" : "View"}</Label>
+                <Label htmlFor="edit">{edit ? "Update" : "Read Only"}</Label>
               </div>
             </div>
             <CardDescription>Details for transaction {id}.</CardDescription>

@@ -43,6 +43,7 @@ import {
 import { Link, useLocation } from "react-router-dom";
 import { useAlertDialog } from "@/providers/AlertDialogProvider";
 import { fetchTransactions } from "@/services/transactions";
+import { Loader } from "@/components/shared/loader";
 
 export function Transactions() {
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -227,7 +228,7 @@ export function Transactions() {
     },
   });
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <Loader />;
   if (error) {
     const errorMessage = error.message.includes(
       "Missing or insufficient permissions"

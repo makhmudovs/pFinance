@@ -1,3 +1,26 @@
+export type ThemeColor =
+  | "red"
+  | "orange"
+  | "yellow"
+  | "lime"
+  | "green"
+  | "emerald"
+  | "teal"
+  | "cyan"
+  | "sky"
+  | "blue"
+  | "indigo"
+  | "violet"
+  | "purple"
+  | "fuchsia"
+  | "pink"
+  | "rose"
+  | "slate"
+  | "gray"
+  | "zinc"
+  | "neutral"
+  | "stone";
+
 export type CategoriesType =
   | "entertainment"
   | "bills"
@@ -27,4 +50,36 @@ export interface TransactionDetailsFormTypes {
   category: CategoriesType;
   amount: number;
   recurring: boolean;
+}
+
+export interface PotDetailsFormTypes {
+  name: string;
+  goal_amount: number;
+  current_amount: number;
+  theme: ThemeColor;
+}
+
+export interface PotDepositTypes {
+  goal_amount: number;
+  current_amount: number;
+  amount:number;
+}
+
+
+export interface BudgetsType {
+  id: string;
+  limit: number;
+  spent: number;
+  category: CategoriesType;
+  theme: ThemeColor;
+  [key: string]: unknown;
+}
+
+export interface PotsType {
+  id: string;
+  name: string;
+  goal_amount: number;
+  current_amount: number;
+  theme: ThemeColor;
+  [key: string]: unknown;
 }

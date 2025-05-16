@@ -1,6 +1,7 @@
 import { AuthError } from "firebase/auth";
 
 export const getFirebaseErrorMessage = (error: AuthError | null): string => {
+  console.log('error',error);
   if (!error) return "";
 
   switch (error.code) {
@@ -18,6 +19,9 @@ export const getFirebaseErrorMessage = (error: AuthError | null): string => {
       return "An account with this email already exists.";
     case "auth/weak-password":
       return "The password is too weak. Please use a stronger password.";
+    case "duplicate-budget":
+      return "This budget already exist plz add another category"
+      ;
     default:
       return "An error occurred during authentication. Please try again.";
   }

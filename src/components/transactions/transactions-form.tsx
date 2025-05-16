@@ -17,6 +17,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
+  AlertDialogOverlay,
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
@@ -110,6 +111,7 @@ export function TransactionForm() {
 
   return (
     <AlertDialog>
+      <AlertDialogOverlay />
       <AlertDialogTrigger asChild>
         <Button className="ms-4 cursor-pointer" variant="outline">
           <Plus className="h-4 w-4 text-green-500" />

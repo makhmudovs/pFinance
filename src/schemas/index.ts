@@ -3,6 +3,8 @@ import { PASSWORD_REGEX } from "@/constants/index";
 
 const registerSchema = z
   .object({
+    firstName: z.string().max(255).min(2),
+    lastName: z.string().max(255).min(2),
     email: z
       .string()
       .min(1, "Email is required")
@@ -49,7 +51,7 @@ const newTransactionSchema = z.object({
   date: z.string(),
   category: z.string(),
   amount: z.number().default(0),
-  recurring: z.boolean().default(false), 
+  recurring: z.boolean().default(false),
 });
 
 export { registerSchema, loginSchema, newTransactionSchema };

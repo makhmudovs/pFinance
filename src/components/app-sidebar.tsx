@@ -51,11 +51,11 @@ const data = {
       url: "/pots",
       icon: Settings2,
     },
-    {
-      title: "Recurring bills",
-      url: "/bills",
-      icon: Settings2,
-    },
+    // {
+    //   title: "Recurring bills",
+    //   url: "/bills",
+    //   icon: Settings2,
+    // },
   ],
 };
 
